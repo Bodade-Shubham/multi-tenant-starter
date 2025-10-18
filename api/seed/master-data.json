@@ -1,0 +1,83 @@
+{
+  "permissions": [
+    { "name": "organisation:create", "description": "Create new organisations" },
+    { "name": "organisation:read", "description": "View organisation information" },
+    { "name": "organisation:update", "description": "Update organisation details" },
+    { "name": "organisation:delete", "description": "Archive or delete organisations" },
+    { "name": "user:create", "description": "Invite or create users within an organisation" },
+    { "name": "user:read", "description": "View users within an organisation" },
+    { "name": "user:update", "description": "Update users within an organisation" },
+    { "name": "user:delete", "description": "Disable or remove users within an organisation" },
+    { "name": "role:assign", "description": "Assign roles to users" },
+    { "name": "designation:manage", "description": "Manage designation list" }
+  ],
+  "roles": [
+    {
+      "name": "super-admin",
+      "displayName": "Super Administrator",
+      "description": "Global maintainer with unrestricted access.",
+      "scope": "system",
+      "permissions": ["*"]
+    },
+    {
+      "name": "tenant-admin",
+      "displayName": "Tenant Administrator",
+      "description": "Manages organisation settings and members.",
+      "scope": "tenant",
+      "permissions": [
+        "organisation:read",
+        "organisation:update",
+        "user:create",
+        "user:read",
+        "user:update",
+        "user:delete",
+        "role:assign",
+        "designation:manage"
+      ]
+    },
+    {
+      "name": "staff",
+      "displayName": "Staff",
+      "description": "Operational staff with limited management access.",
+      "scope": "tenant",
+      "permissions": ["user:read", "user:update"]
+    },
+    {
+      "name": "viewer",
+      "displayName": "Viewer",
+      "description": "Read-only access to organisation resources.",
+      "scope": "tenant",
+      "permissions": ["user:read", "organisation:read"]
+    }
+  ],
+  "designations": [
+    { "name": "Super Administrator", "description": "Primary owner of the platform" },
+    { "name": "Organisation Administrator", "description": "Responsible for organisation level changes" },
+    { "name": "Manager" },
+    { "name": "Staff" },
+    { "name": "Viewer" }
+  ],
+  "organisations": [
+    {
+      "name": "Super Admin Organisation",
+      "slug": "super-admin",
+      "status": "active"
+    },
+    {
+      "name": "Global Tenant",
+      "slug": "global",
+      "status": "active"
+    }
+  ],
+  "users": [
+    {
+      "email": "superadmin@multi-tenant.local",
+      "password": "ChangeMeNow!123",
+      "status": "active",
+      "mobileNumber": "+10000000000",
+      "orgSlug": "super-admin",
+      "role": "super-admin",
+      "designation": "Super Administrator"
+    }
+  ]
+}

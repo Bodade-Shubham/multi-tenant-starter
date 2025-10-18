@@ -1,0 +1,242 @@
+// Mongo shell script to seed super admin master data.
+// Usage:
+//   1. Open mongosh connected to the server (local or remote).
+//   2. Copy everything in this file and paste into the shell.
+//   3. Verify the printed output for success.
+
+(function () {
+  const dbName = 'multi_tenant_starter';
+  const dbRef = db.getSiblingDB(dbName);
+  const now = new Date();
+
+  const data = {
+    permissions: [
+      { name: 'organisation:create', description: 'Create new organisations' },
+      { name: 'organisation:read', description: 'View organisation information' },
+      { name: 'organisation:update', description: 'Update organisation details' },
+      { name: 'organisation:delete', description: 'Archive or delete organisations' },
+      { name: 'user:create', description: 'Invite or create users within an organisation' },
+      { name: 'user:read', description: 'View users within an organisation' },
+      { name: 'user:update', description: 'Update users within an organisation' },
+      { name: 'user:delete', description: 'Disable or remove users within an organisation' },
+      { name: 'role:assign', description: 'Assign roles to users' },
+      { name: 'designation:manage', description: 'Manage designation list' }
+    ],
+    roles: [
+      {
+        name: 'super-admin',
+        displayName: 'Super Administrator',
+        description: 'Global maintainer with unrestricted access.',
+        scope: 'system',
+        permissions: ['*']
+      },
+      {
+        name: 'tenant-admin',
+        displayName: 'Tenant Administrator',
+        description: 'Manages organisation settings and members.',
+        scope: 'tenant',
+        permissions: [
+          'organisation:read',
+          'organisation:update',
+          'user:create',
+          'user:read',
+          'user:update',
+          'user:delete',
+          'role:assign',
+          'designation:manage'
+        ]
+      },
+      {
+        name: 'staff',
+        displayName: 'Staff',
+        description: 'Operational staff with limited management access.',
+        scope: 'tenant',
+        permissions: ['user:read', 'user:update']
+      },
+      {
+        name: 'viewer',
+        displayName: 'Viewer',
+        description: 'Read-only access to organisation resources.',
+        scope: 'tenant',
+        permissions: ['user:read', 'organisation:read']
+      }
+    ],
+    designations: [
+      { name: 'Super Administrator', description: 'Primary owner of the platform' },
+      { name: 'Organisation Administrator', description: 'Responsible for organisation level changes' },
+      { name: 'Manager' },
+      { name: 'Staff' },
+      { name: 'Viewer' }
+    ],
+    organisations: [
+      {
+        name: 'Super Admin Organisation',
+        slug: 'super-admin',
+        status: 'active'
+      },
+      {
+        name: 'Global Tenant',
+        slug: 'global',
+        status: 'active'
+      }
+    ],
+    users: [
+      {
+        email: 'superadmin@multi-tenant.local',
+        passwordHash: '$2b$12$q9vpSUqjy7ECSlI54B6h3eZnHHe4bNYq3oar2VX6q3dFt/3kbqEpu',
+        status: 'active',
+        mobileNumber: '+10000000000',
+        orgSlug: 'super-admin',
+        role: 'super-admin',
+        designation: 'Super Administrator'
+      }
+    ]
+  };
+
+  const ensureCollection = function (name) {
+    if (dbRef.getCollectionInfos({ name: name }).length === 0) {
+      dbRef.createCollection(name);
+    }
+  };
+
+  ['permissions', 'roles', 'designations', 'tenants', 'users'].forEach(ensureCollection);
+
+  print('> Seeding permissions');
+  data.permissions.forEach(function (permission) {
+    dbRef.permissions.updateOne(
+      { name: permission.name },
+      {
+        $set: {
+          description: permission.description || '',
+          updatedAt: now
+        },
+        $setOnInsert: {
+          name: permission.name,
+          createdAt: now
+        }
+      },
+      { upsert: true }
+    );
+  });
+
+  print('> Seeding roles');
+  data.roles.forEach(function (role) {
+    dbRef.roles.updateOne(
+      { name: role.name },
+      {
+        $set: {
+          displayName: role.displayName,
+          description: role.description || '',
+          permissions: role.permissions || [],
+          scope: role.scope || 'tenant',
+          updatedAt: now
+        },
+        $setOnInsert: {
+          name: role.name,
+          createdAt: now
+        }
+      },
+      { upsert: true }
+    );
+  });
+
+  print('> Seeding designations');
+  data.designations.forEach(function (designation) {
+    dbRef.designations.updateOne(
+      { name: designation.name },
+      {
+        $set: {
+          name: designation.name,
+          description: designation.description || '',
+          updatedAt: now
+        },
+        $setOnInsert: {
+          createdAt: now
+        }
+      },
+      { upsert: true }
+    );
+  });
+
+  print('> Seeding organisations');
+  data.organisations.forEach(function (organisation) {
+    dbRef.tenants.updateOne(
+      { slug: organisation.slug },
+      {
+        $set: {
+          name: organisation.name,
+          slug: organisation.slug,
+          status: organisation.status || 'active',
+          updatedAt: now
+        },
+        $setOnInsert: {
+          createdAt: now
+        }
+      },
+      { upsert: true }
+    );
+  });
+
+  print('> Seeding users');
+  data.users.forEach(function (user) {
+    const setDoc = {
+      status: user.status,
+      passwordHash: user.passwordHash,
+      updatedAt: now
+    };
+
+    const unsetDoc = {};
+
+    if (user.mobileNumber) {
+      setDoc.mobileNumber = user.mobileNumber;
+    } else {
+      unsetDoc.mobileNumber = '';
+    }
+
+    if (user.orgSlug) {
+      const organisation = dbRef.tenants.findOne({ slug: user.orgSlug });
+      if (!organisation) {
+        throw new Error('Organisation with slug ' + user.orgSlug + ' not found for user ' + user.email);
+      }
+      setDoc.orgId = organisation._id;
+    } else {
+      unsetDoc.orgId = '';
+    }
+
+    if (user.role) {
+      const roleDoc = dbRef.roles.findOne({ name: user.role });
+      if (!roleDoc) {
+        throw new Error('Role ' + user.role + ' not found for user ' + user.email);
+      }
+      setDoc.roleId = roleDoc._id;
+    } else {
+      unsetDoc.roleId = '';
+    }
+
+    if (user.designation) {
+      const designationDoc = dbRef.designations.findOne({ name: user.designation });
+      if (!designationDoc) {
+        throw new Error('Designation ' + user.designation + ' not found for user ' + user.email);
+      }
+      setDoc.designationId = designationDoc._id;
+    } else {
+      unsetDoc.designationId = '';
+    }
+
+    const updateDoc = {
+      $set: setDoc,
+      $setOnInsert: {
+        email: user.email,
+        createdAt: now
+      }
+    };
+
+    if (Object.keys(unsetDoc).length > 0) {
+      updateDoc.$unset = unsetDoc;
+    }
+
+    dbRef.users.updateOne({ email: user.email }, updateDoc, { upsert: true });
+  });
+
+  print('> Master data seeding completed (idempotent).');
+})();

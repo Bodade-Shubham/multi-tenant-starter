@@ -4,6 +4,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import Fastify, { FastifyInstance } from 'fastify';
 import envPlugin from './plugins/env';
+import mongoPlugin from './plugins/mongodb';
 
 export const buildApp = (): FastifyInstance => {
   const app = Fastify({
@@ -13,6 +14,7 @@ export const buildApp = (): FastifyInstance => {
   });
 
   app.register(envPlugin);
+  app.register(mongoPlugin);
 
   app.register(cors, {
     origin: true,

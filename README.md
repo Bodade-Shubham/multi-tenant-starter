@@ -43,6 +43,7 @@ It provides a ready-to-use backend API and frontend admin portal to help develop
 ---
 
 🧠 Ideal Use Cases
+
 🏢 SaaS Platforms — Apps needing per-organization data isolation and roles
 
 🎓 Institute / School Management — Manage users, staff, and students per institute

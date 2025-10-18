@@ -56,3 +56,25 @@ It provides a ready-to-use backend API and frontend admin portal to help develop
 
 
 
+---
+
+## 🔐 Seed Data & Super Admin
+
+The backend includes an idempotent seed to provision core master data and a super admin account.
+
+- **Run the seed**: `cd api && npm run seed:master-data`  
+  - Upserts permissions, roles, designations, organisations, and the initial super admin user.  
+  - Generates clipboard-friendly mongo shell scripts at `seed/master-data.mongo.js` and `seed/master-data.mongo.txt`.
+- **Default Super Admin**
+  - Email: `superadmin@multi-tenant.local`  
+  - Password: `ChangeMeNow!123` (bcrypt hashed during seeding)  
+  - Organisation: `Super Admin Organisation`  
+  - Role: `super-admin` (system scope, full access)  
+  - Designation: `Super Administrator`
+- **Collections ensured**: `permissions`, `roles`, `designations`, `tenants`, `users`
+- **Idempotent**: re-running the seed fixes drift without creating duplicates or stale references.
+- **Manual alternative**: copy `seed/seed_mongo_script.txt` into `mongosh` if the TypeScript toolchain is unavailable.
+
+> ⚠️ For production, rotate the seeded password and update secrets immediately after bootstrapping.
+
+---

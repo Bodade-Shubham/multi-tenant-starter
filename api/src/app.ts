@@ -104,11 +104,11 @@ export const buildApp = (): FastifyInstance => {
           },
           Organisation: {
             type: 'object',
-            required: ['id', 'name', 'slug', 'status', 'createdAt', 'updatedAt'],
+            required: ['id', 'name', 'code', 'status', 'createdAt', 'updatedAt'],
             properties: {
               id: { type: 'string' },
               name: { type: 'string' },
-              slug: {
+              code: {
                 type: 'string',
                 pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
               },
@@ -135,10 +135,10 @@ export const buildApp = (): FastifyInstance => {
           },
           OrganisationCreateRequest: {
             type: 'object',
-            required: ['name', 'slug'],
+            required: ['name', 'code'],
             properties: {
               name: { type: 'string', minLength: 1 },
-              slug: {
+              code: {
                 type: 'string',
                 pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
               },
@@ -153,7 +153,7 @@ export const buildApp = (): FastifyInstance => {
             type: 'object',
             properties: {
               name: { type: 'string', minLength: 1 },
-              slug: {
+              code: {
                 type: 'string',
                 pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
               },
@@ -280,7 +280,7 @@ export const buildApp = (): FastifyInstance => {
                 }
               },
               '409': {
-                description: 'Organisation slug already exists',
+                description: 'Organisation code already exists',
                 content: {
                   'application/json': {
                     schema: {
@@ -372,7 +372,7 @@ export const buildApp = (): FastifyInstance => {
                 }
               },
               '409': {
-                description: 'Organisation slug already exists',
+                description: 'Organisation code already exists',
                 content: {
                   'application/json': {
                     schema: {

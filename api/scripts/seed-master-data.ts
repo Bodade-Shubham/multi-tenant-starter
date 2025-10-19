@@ -26,7 +26,7 @@ type DesignationSeed = {
 
 type OrganisationSeed = {
   name: string;
-  slug: string;
+  code: string;
   status: string;
 };
 
@@ -36,7 +36,7 @@ type UserSeed = {
   passwordHash?: string;
   status: string;
   mobileNumber?: string;
-  orgSlug?: string;
+  orgCode?: string;
   role?: string;
   designation?: string;
 };
@@ -54,7 +54,7 @@ type PreparedShellUser = {
   passwordHash: string;
   status: string;
   mobileNumber?: string;
-  orgSlug?: string;
+  orgCode?: string;
   role?: string;
   designation?: string;
 };
@@ -168,11 +168,11 @@ const buildMongoShellScript = (
 
   data.organisations.forEach((organisation) => {
     dbRef.tenants.updateOne(
-      { slug: organisation.slug },
+      { code: organisation.code },
       {
         $set: {
           name: organisation.name,
-          slug: organisation.slug,
+          code: organisation.code,
           status: organisation.status || 'active',
           updatedAt: now
         },
@@ -199,10 +199,10 @@ const buildMongoShellScript = (
       unsetDoc.mobileNumber = '';
     }
 
-    if (user.orgSlug) {
-      const organisation = dbRef.tenants.findOne({ slug: user.orgSlug });
+    if (user.orgCode) {
+      const organisation = dbRef.tenants.findOne({ code: user.orgCode });
       if (!organisation) {
-        throw new Error('Organisation with slug ' + user.orgSlug + ' not found while seeding user ' + user.email);
+        throw new Error('Organisation with code ' + user.orgCode + ' not found while seeding user ' + user.email);
       }
       setDoc.orgId = organisation._id;
     } else {
@@ -350,11 +350,11 @@ const main = async () => {
     console.log('Seeding organisations…');
     for (const organisation of masterData.organisations) {
       const result = await organisationsCollection.findOneAndUpdate(
-        { slug: organisation.slug },
+        { code: organisation.code },
         {
           $set: {
             name: organisation.name,
-            slug: organisation.slug,
+            code: organisation.code,
             status: organisation.status,
             updatedAt: now
           },
@@ -366,20 +366,20 @@ const main = async () => {
       );
 
       if (!result || !result.value?._id) {
-        throw new Error(`Failed to upsert organisation ${organisation.slug}`);
+        throw new Error(`Failed to upsert organisation ${organisation.code}`);
       }
 
-      organisationMap.set(organisation.slug, result.value._id as ObjectId);
+      organisationMap.set(organisation.code, result.value._id as ObjectId);
     }
 
     console.log('Seeding users…');
     for (const user of masterData.users) {
       const existing = await usersCollection.findOne({ email: user.email });
 
-      const orgId = user.orgSlug ? organisationMap.get(user.orgSlug) : undefined;
-      if (user.orgSlug && !orgId) {
+      const orgId = user.orgCode ? organisationMap.get(user.orgCode) : undefined;
+      if (user.orgCode && !orgId) {
         throw new Error(
-          `Organisation with slug ${user.orgSlug} not found for user ${user.email}`
+          `Organisation with code ${user.orgCode} not found for user ${user.email}`
         );
       }
 
@@ -487,7 +487,7 @@ const main = async () => {
         passwordHash: finalPasswordHash,
         status: user.status,
         mobileNumber: user.mobileNumber,
-        orgSlug: user.orgSlug,
+        orgCode: user.orgCode,
         role: user.role,
         designation: user.designation
       });

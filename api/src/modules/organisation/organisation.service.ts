@@ -13,7 +13,7 @@ import {
 export type OrganisationResponse = {
   id: string;
   name: string;
-  slug: string;
+  code: string;
   status: OrganisationStatus;
   createdAt: string;
   updatedAt: string;
@@ -40,10 +40,10 @@ export class OrganisationNotFoundError extends OrganisationError {
   }
 }
 
-export class OrganisationSlugTakenError extends OrganisationError {
+export class OrganisationCodeTakenError extends OrganisationError {
   constructor() {
-    super('Organisation slug already exists');
-    this.name = 'OrganisationSlugTakenError';
+    super('Organisation code already exists');
+    this.name = 'OrganisationCodeTakenError';
   }
 }
 
@@ -52,13 +52,13 @@ const toOrganisationResponse = (
 ): OrganisationResponse => ({
   id: organisation._id.toHexString(),
   name: organisation.name,
-  slug: organisation.slug,
+  code: organisation.code,
   status: organisation.status,
   createdAt: organisation.createdAt.toISOString(),
   updatedAt: organisation.updatedAt.toISOString()
 });
 
-const normaliseSlug = (slug: string) => slug.trim().toLowerCase();
+const normaliseCode = (code: string) => code.trim().toLowerCase();
 
 const normaliseName = (name: string) => name.trim();
 
@@ -95,17 +95,17 @@ export class OrganisationService {
     const now = new Date();
 
     const name = normaliseName(input.name);
-    const slug = normaliseSlug(input.slug);
+    const code = normaliseCode(input.code);
 
-    const existing = await this.repository.findBySlug(slug);
+    const existing = await this.repository.findByCode(code);
 
     if (existing) {
-      throw new OrganisationSlugTakenError();
+      throw new OrganisationCodeTakenError();
     }
 
     const organisationToCreate: CreateOrganisationDoc = {
       name,
-      slug,
+      code,
       status: input.status ?? 'active',
       createdAt: now,
       updatedAt: now
@@ -133,18 +133,18 @@ export class OrganisationService {
       payload.name = normaliseName(input.name);
     }
 
-    if (input.slug !== undefined) {
-      const slug = normaliseSlug(input.slug);
+    if (input.code !== undefined) {
+      const code = normaliseCode(input.code);
 
-      if (slug !== organisation.slug) {
-        const existing = await this.repository.findBySlug(slug);
+      if (code !== organisation.code) {
+        const existing = await this.repository.findByCode(code);
 
         if (existing && !existing._id.equals(organisation._id)) {
-          throw new OrganisationSlugTakenError();
+          throw new OrganisationCodeTakenError();
         }
       }
 
-      payload.slug = normaliseSlug(input.slug);
+      payload.code = code;
     }
 
     if (input.status !== undefined) {

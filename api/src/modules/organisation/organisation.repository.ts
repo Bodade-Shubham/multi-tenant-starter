@@ -27,8 +27,8 @@ export class OrganisationRepository {
     return this.collection.findOne({ _id: id });
   }
 
-  async findBySlug(slug: string): Promise<OrganisationDocument | null> {
-    return this.collection.findOne({ slug });
+  async findByCode(code: string): Promise<OrganisationDocument | null> {
+    return this.collection.findOne({ code });
   }
 
   async create(

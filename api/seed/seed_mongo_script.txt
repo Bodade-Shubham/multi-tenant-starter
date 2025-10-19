@@ -71,12 +71,12 @@
     organisations: [
       {
         name: 'Super Admin Organisation',
-        slug: 'super-admin',
+        code: 'super-admin',
         status: 'active'
       },
       {
         name: 'Global Tenant',
-        slug: 'global',
+        code: 'global',
         status: 'active'
       }
     ],
@@ -86,7 +86,7 @@
         passwordHash: '$2b$12$q9vpSUqjy7ECSlI54B6h3eZnHHe4bNYq3oar2VX6q3dFt/3kbqEpu',
         status: 'active',
         mobileNumber: '+10000000000',
-        orgSlug: 'super-admin',
+        orgCode: 'super-admin',
         role: 'super-admin',
         designation: 'Super Administrator'
       }
@@ -161,11 +161,11 @@
   print('> Seeding organisations');
   data.organisations.forEach(function (organisation) {
     dbRef.tenants.updateOne(
-      { slug: organisation.slug },
+      { code: organisation.code },
       {
         $set: {
           name: organisation.name,
-          slug: organisation.slug,
+          code: organisation.code,
           status: organisation.status || 'active',
           updatedAt: now
         },
@@ -193,10 +193,10 @@
       unsetDoc.mobileNumber = '';
     }
 
-    if (user.orgSlug) {
-      const organisation = dbRef.tenants.findOne({ slug: user.orgSlug });
+    if (user.orgCode) {
+      const organisation = dbRef.tenants.findOne({ code: user.orgCode });
       if (!organisation) {
-        throw new Error('Organisation with slug ' + user.orgSlug + ' not found for user ' + user.email);
+        throw new Error('Organisation with code ' + user.orgCode + ' not found for user ' + user.email);
       }
       setDoc.orgId = organisation._id;
     } else {

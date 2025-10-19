@@ -60,12 +60,12 @@
   "organisations": [
     {
       "name": "Super Admin Organisation",
-      "slug": "super-admin",
+      "code": "super-admin",
       "status": "active"
     },
     {
       "name": "Global Tenant",
-      "slug": "global",
+      "code": "global",
       "status": "active"
     }
   ],
@@ -75,7 +75,7 @@
       "password": "ChangeMeNow!123",
       "status": "active",
       "mobileNumber": "+10000000000",
-      "orgSlug": "super-admin",
+      "orgCode": "super-admin",
       "role": "super-admin",
       "designation": "Super Administrator"
     }

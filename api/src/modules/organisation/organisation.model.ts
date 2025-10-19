@@ -11,18 +11,18 @@ export type OrganisationStatus = z.infer<typeof organisationStatusSchema>;
 
 export interface OrganisationDocument extends BaseDocument {
   name: string;
-  slug: string;
+  code: string;
   status: OrganisationStatus;
 }
 
 export const createOrganisationSchema = z.object({
   name: z.string().min(1, 'Organisation name is required'),
-  slug: z
+  code: z
     .string()
-    .min(1, 'Organisation slug is required')
+    .min(1, 'Organisation code is required')
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      'Slug may contain lowercase letters, numbers, and hyphens'
+      'Code may contain lowercase letters, numbers, and hyphens'
     ),
   status: organisationStatusSchema.default('active')
 });

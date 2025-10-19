@@ -12,7 +12,7 @@ import {
   OrganisationNotFoundError,
   OrganisationResponse,
   OrganisationService,
-  OrganisationSlugTakenError
+  OrganisationCodeTakenError
 } from './organisation.service';
 
 const organisationResponseSchema = {
@@ -21,12 +21,12 @@ const organisationResponseSchema = {
   properties: {
     id: { type: 'string' },
     name: { type: 'string' },
-    slug: { type: 'string' },
+    code: { type: 'string' },
     status: { type: 'string', enum: organisationStatuses },
     createdAt: { type: 'string', format: 'date-time' },
     updatedAt: { type: 'string', format: 'date-time' }
   },
-  required: ['id', 'name', 'slug', 'status', 'createdAt', 'updatedAt']
+  required: ['id', 'name', 'code', 'status', 'createdAt', 'updatedAt']
 } as const;
 
 const organisationListResponseSchema = {
@@ -47,10 +47,10 @@ const organisationListResponseSchema = {
 const createOrganisationBodySchema = {
   $id: 'OrganisationCreateRequest',
   type: 'object',
-  required: ['name', 'slug'],
+  required: ['name', 'code'],
   properties: {
     name: { type: 'string', minLength: 1 },
-    slug: {
+    code: {
       type: 'string',
       pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
     },
@@ -67,7 +67,7 @@ const updateOrganisationBodySchema = {
   type: 'object',
   properties: {
     name: { type: 'string', minLength: 1 },
-    slug: {
+    code: {
       type: 'string',
       pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
     },
@@ -111,7 +111,7 @@ const organisationRoutes: FastifyPluginAsync = async (app) => {
       throw app.httpErrors.notFound(error.message);
     }
 
-    if (error instanceof OrganisationSlugTakenError) {
+    if (error instanceof OrganisationCodeTakenError) {
       throw app.httpErrors.conflict(error.message);
     }
 
